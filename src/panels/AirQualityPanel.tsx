@@ -11,7 +11,7 @@ export function AirQualityPanel() {
   if (!current && !loading) return null
 
   return (
-    <div className="panel-hud visible" style={{ width: 280 }}>
+    <div className="panel-hud visible">
       <div className="panel-header">🌬️ AIR QUALITY</div>
       <div className="panel-content">
         {loading && (
@@ -68,7 +68,7 @@ export function AirQualityPanel() {
 
             <div className="section-divider" />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginTop: 6 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
               <div>
                 <div className="label">PM2.5</div>
                 <div className="value">{current.pm2_5.toFixed(1)} µg/m³</div>

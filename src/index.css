@@ -186,7 +186,13 @@ body {
 .panel-solar { width: 260px; height: 220px; }
 .panel-atmosphere { width: 280px; height: 240px; }
 .panel-weather { width: 300px; height: 260px; }
-.panel-air { width: 280px; height: 260px; }
+.panel-air {
+  width: 260px;
+  height: 260px;
+  max-width: calc(100vw - 40px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
 .panel-forecast { width: 680px; height: 200px; }
 
 /* Force children panels to fill the size */

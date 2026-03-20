@@ -156,7 +156,27 @@ async function loadJsonCities(url: string, timeoutMs: number): Promise<City[]> {
 export async function loadCities(): Promise<City[]> {
   console.log('Loading cities...')
 
-  // Try binary format first (fastest)
+  // Priority 1: JSON with top 25k dataset (contains actual names)
+  try {
+    console.log('  Trying cities-top25k.json...')
+    const cities = await loadJsonCities('/cities-top25k.json', 25000)
+    console.log(`  ✓ Loaded ${cities.length} cities from JSON (with names)`)
+    return cities
+  } catch (error) {
+    console.log(`  ✗ Top 25k JSON failed: ${error instanceof Error ? error.message : error}`)
+  }
+
+  // Priority 2: JSON with full dataset
+  try {
+    console.log('  Trying cities.json...')
+    const cities = await loadJsonCities('/cities.json', 15000)
+    console.log(`  ✓ Loaded ${cities.length} cities from full JSON`)
+    return cities
+  } catch (error) {
+    console.log(`  ✗ Full JSON failed: ${error instanceof Error ? error.message : error}`)
+  }
+
+  // Priority 3: Binary (fast but no names)
   try {
     console.log('  Trying cities.bin...')
     const buffer = await loadBinaryCities('/cities.bin', 10000)
@@ -165,26 +185,6 @@ export async function loadCities(): Promise<City[]> {
     return cities
   } catch (error) {
     console.log(`  ✗ Binary failed: ${error instanceof Error ? error.message : error}`)
-  }
-
-  // Fallback to JSON with full dataset
-  try {
-    console.log('  Trying cities.json...')
-    const cities = await loadJsonCities('/cities.json', 15000)
-    console.log(`  ✓ Loaded ${cities.length} cities from JSON`)
-    return cities
-  } catch (error) {
-    console.log(`  ✗ Full JSON failed: ${error instanceof Error ? error.message : error}`)
-  }
-
-  // Fallback to reduced JSON dataset
-  try {
-    console.log('  Trying cities-top25k.json...')
-    const cities = await loadJsonCities('/cities-top25k.json', 10000)
-    console.log(`  ✓ Loaded ${cities.length} cities from reduced JSON`)
-    return cities
-  } catch (error) {
-    console.log(`  ✗ Reduced JSON failed: ${error instanceof Error ? error.message : error}`)
   }
 
   // Final fallback: inline cities

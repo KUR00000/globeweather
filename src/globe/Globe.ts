@@ -30,8 +30,6 @@ export class Globe {
   private height: number
   private config: GlobeConfig
 
-  private container: HTMLDivElement
-
   constructor(
     container: HTMLDivElement,
     width: number,
@@ -41,7 +39,6 @@ export class Globe {
     this.width = width
     this.height = height
     this.config = config
-    this.container = container
 
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000)
@@ -54,6 +51,9 @@ export class Globe {
     container.appendChild(this.renderer.domElement)
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    // @ts-ignore - Bypass OrbitControls access modifier restriction
+    this.controls.target.set(0, -0.3, 0)
+    this.controls.update()
     this.setupScene()
     this.setupEventListeners()
 
