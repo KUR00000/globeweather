@@ -14,105 +14,109 @@ export function ForecastPanel() {
     return getDayName(dateString)
   }
 
-  // Get global temp range for bar positioning
-  const allTemps = daily
-    ? [...daily.temperature_2m_min, ...daily.temperature_2m_max]
-    : []
-  const globalMin = allTemps.length > 0 ? Math.min(...allTemps) : 0
-  const globalMax = allTemps.length > 0 ? Math.max(...allTemps) : 30
-  const range = globalMax - globalMin || 1
-
   return (
-    <div className="panel-hud visible" style={{ width: 320 }}>
-      <div className="panel-header">📅 7-DAY FORECAST</div>
-      <div className="panel-content" style={{ padding: '8px 12px' }}>
+    <div className="panel-hud visible" style={{ width: 'auto', minWidth: 600, maxWidth: '90vw' }}>
+      <div className="panel-header" style={{ justifyContent: 'center' }}>
+        📅 7-DAY FORECAST
+      </div>
+      <div className="panel-content" style={{ padding: '16px 20px' }}>
         {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 12 }}>
             {[0, 1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="loading-shimmer" style={{ height: 28 }} />
+              <div key={i} className="loading-shimmer" style={{ height: 80, borderRadius: 12 }} />
             ))}
           </div>
         )}
 
         {!loading && daily && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 12 }}>
             {daily.time.map((date, index) => {
               const weather = wmoCodeToDescription(daily.weathercode[index])
               const minTemp = daily.temperature_2m_min[index]
               const maxTemp = daily.temperature_2m_max[index]
               const rainProb = daily.precipitation_probability_max[index]
 
-              // Calculate bar position within the global range
-              const left = ((minTemp - globalMin) / range) * 100
-              const width = ((maxTemp - minTemp) / range) * 100
-
               return (
                 <div
                   key={date}
                   style={{
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '2px 4px',
-                    borderRadius: 4,
-                    transition: 'background 0.2s',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: 16,
+                    padding: '12px 16px',
+                    transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    position: 'relative',
+                    overflow: 'hidden',
                     cursor: 'default'
                   }}
                   onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(0,212,255,0.06)'
+                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(0, 229, 255, 0.08)';
+                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0, 229, 255, 0.3)';
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = 'transparent'
+                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(0, 0, 0, 0.4)';
+                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
                   }}
                 >
-                  {/* Day name */}
-                  <div style={{ width: 42, fontSize: 10, fontWeight: 600, color: index === 0 ? '#00d4ff' : '#7aa0b0', letterSpacing: 1 }}>
-                    {formatDay(date, index)}
-                  </div>
-
-                  {/* Weather icon */}
-                  <div style={{ width: 24, textAlign: 'center', fontSize: 16 }}>
-                    {weather?.icon}
-                  </div>
-
-                  {/* Min temp */}
-                  <div style={{ width: 30, fontSize: 11, color: '#6a9aaa', textAlign: 'right' }}>
-                    {Math.round(minTemp)}°
-                  </div>
-
-                  {/* Temperature bar */}
-                  <div style={{
-                    flex: 1,
-                    height: 6,
-                    background: 'rgba(0,0,0,0.4)',
-                    borderRadius: 3,
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}>
+                  {/* Rain Probability Background Height */}
+                  {rainProb > 0 && (
                     <div style={{
                       position: 'absolute',
-                      left: `${left}%`,
-                      width: `${Math.max(width, 4)}%`,
-                      height: '100%',
-                      background: 'linear-gradient(90deg, #0077cc, #ff4444)',
-                      borderRadius: 3,
-                      transition: 'all 0.4s ease'
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${rainProb}%`,
+                      background: 'linear-gradient(0deg, rgba(0, 229, 255, 0.15) 0%, transparent 100%)',
+                      zIndex: 0,
+                      pointerEvents: 'none'
                     }} />
-                  </div>
+                  )}
 
-                  {/* Max temp */}
-                  <div style={{ width: 30, fontSize: 11, color: '#c8f4ff', fontWeight: 600 }}>
-                    {Math.round(maxTemp)}°
-                  </div>
+                  <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    {/* Day name */}
+                    <div style={{ 
+                      fontFamily: 'Space Mono', 
+                      fontSize: 10, 
+                      fontWeight: 700, 
+                      color: index === 0 ? '#00e5ff' : '#6c8a9c', 
+                      letterSpacing: 2,
+                      marginBottom: 8
+                    }}>
+                      {formatDay(date, index)}
+                    </div>
 
-                  {/* Rain probability */}
-                  <div style={{
-                    width: 32,
-                    fontSize: 10,
-                    textAlign: 'right',
-                    color: rainProb > 50 ? '#00aaff' : '#4a6a7a'
-                  }}>
-                    {rainProb > 0 ? `${rainProb}%` : ''}
+                    {/* Weather icon */}
+                    <div style={{ fontSize: 28, marginBottom: 8, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }}>
+                      {weather?.icon}
+                    </div>
+
+                    {/* Temperatures */}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+                      <span style={{ fontFamily: 'Outfit', fontSize: 20, fontWeight: 700, color: '#ffffff' }}>
+                        {Math.round(maxTemp)}°
+                      </span>
+                      <span style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: '#6c8a9c' }}>
+                        {Math.round(minTemp)}°
+                      </span>
+                    </div>
+
+                    {/* Rain probability text */}
+                    <div style={{ 
+                      fontFamily: 'Space Mono', 
+                      fontSize: 10, 
+                      color: rainProb > 20 ? '#00e5ff' : '#4a6b7c',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}>
+                      <span style={{ fontSize: 10 }}>💧</span>
+                      {rainProb}%
+                    </div>
                   </div>
                 </div>
               )

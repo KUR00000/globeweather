@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, AnimatePresence, useAnimationFrame } from 'framer-motion'
 import { useGlobeStore } from '../store/useGlobeStore'
 import { ForecastPanel } from './ForecastPanel'
 import { WeatherPanel } from './WeatherPanel'
@@ -7,11 +7,7 @@ import { AirQualityPanel } from './AirQualityPanel'
 import { AtmospherePanel } from './AtmospherePanel'
 import { SolarPanel } from './SolarPanel'
 
-interface PanelPosition {
-  id: string
-  x: number
-  y: number
-}
+const PANEL_IDS = ['solar', 'atmosphere', 'weather', 'air', 'forecast']
 
 const panelVariants = {
   hidden: { opacity: 0, scale: 0.85, y: 20 },
@@ -36,34 +32,46 @@ export function PanelContainer() {
   const loading = useGlobeStore(state => state.loading)
 
   const panelRefs = useRef<Record<string, HTMLDivElement | null>>({})
-  const [panelCenters, setPanelCenters] = useState<PanelPosition[]>([])
+  const lineRefs = useRef<Record<string, SVGLineElement | null>>({})
+  const circleRefs = useRef<Record<string, SVGCircleElement | null>>({})
 
-  useEffect(() => {
+  // High-performance 60fps loop for SVG anchors
+  useAnimationFrame(() => {
     if (!panelsVisible) return
+    const cityPos = useGlobeStore.getState().cityScreenPos
+    if (!cityPos) return
 
-    const updateCenters = () => {
-      const centers: PanelPosition[] = []
-      for (const [id, el] of Object.entries(panelRefs.current)) {
-        if (el) {
-          const rect = el.getBoundingClientRect()
-          centers.push({
-            id,
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-          })
-        }
+    for (const id of PANEL_IDS) {
+      const el = panelRefs.current[id]
+      if (!el) continue
+
+      const rect = el.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) continue
+
+      let targetX = rect.left + rect.width / 2
+      let targetY = rect.top + rect.height / 2
+
+      if (id === 'solar') { targetX = rect.right; targetY = rect.bottom; }
+      else if (id === 'atmosphere') { targetX = rect.right; targetY = rect.top; }
+      else if (id === 'weather') { targetX = rect.left; targetY = rect.bottom; }
+      else if (id === 'air') { targetX = rect.left; targetY = rect.top; }
+      else if (id === 'forecast') { targetX = rect.left + rect.width / 2; targetY = rect.top; }
+
+      const lineEl = lineRefs.current[id]
+      if (lineEl) {
+        lineEl.setAttribute('x1', cityPos.x.toString())
+        lineEl.setAttribute('y1', cityPos.y.toString())
+        lineEl.setAttribute('x2', targetX.toString())
+        lineEl.setAttribute('y2', targetY.toString())
       }
-      setPanelCenters(centers)
-    }
 
-    const timer = setTimeout(updateCenters, 400)
-    window.addEventListener('resize', updateCenters)
-
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('resize', updateCenters)
+      const circleEl = circleRefs.current[id]
+      if (circleEl) {
+        circleEl.setAttribute('cx', targetX.toString())
+        circleEl.setAttribute('cy', targetY.toString())
+      }
     }
-  }, [panelsVisible, selectedCity])
+  })
 
   if (!selectedCity && !loading) return null
 
@@ -81,60 +89,57 @@ export function PanelContainer() {
         }}
       >
         <AnimatePresence>
-          {panelsVisible && cityScreenPos && panelCenters.length > 0 && (
+          {panelsVisible && cityScreenPos && (
             <>
-              {panelCenters.map((panel, i) => (
-                <motion.line
-                  key={panel.id}
-                  x1={cityScreenPos.x}
-                  y1={cityScreenPos.y}
-                  x2={panel.x}
-                  y2={panel.y}
-                  stroke="rgba(0, 212, 255, 0.35)"
-                  strokeWidth={1}
-                  strokeDasharray="6 4"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{
-                    pathLength: 1,
-                    opacity: 0.6,
-                    strokeDashoffset: [-20, 0],
-                    transition: {
-                      pathLength: { delay: i * 0.08, duration: 0.4 },
-                      opacity: { delay: i * 0.08, duration: 0.3 },
-                      strokeDashoffset: {
-                        delay: i * 0.08 + 0.4,
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: 'linear'
+              {PANEL_IDS.map((id, i) => (
+                <g key={id}>
+                  <motion.line
+                    ref={(el) => { (lineRefs as any).current[id] = el }}
+                    stroke="#00d4ff"
+                    strokeWidth="1"
+                    strokeDasharray="6 3"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{
+                      pathLength: 1,
+                      opacity: 0.75,
+                      strokeDashoffset: [0, -18],
+                      transition: {
+                        pathLength: { delay: i * 0.08, duration: 0.4 },
+                        opacity: { delay: i * 0.08, duration: 0.3 },
+                        strokeDashoffset: {
+                          delay: i * 0.08 + 0.4,
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: 'linear'
+                        }
                       }
-                    }
-                  }}
-                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                />
+                    }}
+                    exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                  />
+                  <motion.circle
+                    ref={(el) => { (circleRefs as any).current[id] = el }}
+                    r="4"
+                    fill="#00d4ff"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: i * 0.08 + 0.3, type: 'spring' }}
+                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  />
+                </g>
               ))}
 
-              {/* City pulse dot */}
+              {/* City origin dot with CSS pulse */}
+              <circle cx={cityScreenPos.x} cy={cityScreenPos.y} r="7" fill="#ffffff" />
               <motion.circle
                 cx={cityScreenPos.x}
                 cy={cityScreenPos.y}
-                r={6}
+                r="7"
                 fill="none"
-                stroke="#00ffff"
-                strokeWidth={2}
-                initial={{ r: 4, opacity: 0 }}
-                animate={{
-                  r: [6, 14, 6],
-                  opacity: [0.9, 0.2, 0.9],
-                  transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
-                }}
-              />
-              <motion.circle
-                cx={cityScreenPos.x}
-                cy={cityScreenPos.y}
-                r={3}
-                fill="#00ffff"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                stroke="#ffffff"
+                strokeWidth="2"
+                initial={{ scale: 1, opacity: 0.8 }}
+                animate={{ scale: 2.5, opacity: 0 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
               />
             </>
           )}
@@ -148,23 +153,11 @@ export function PanelContainer() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
+            className="city-tooltip"
             style={{
-              position: 'fixed',
               left: cityScreenPos.x,
-              top: cityScreenPos.y - 28,
-              transform: 'translateX(-50%)',
-              zIndex: 200,
-              pointerEvents: 'none',
-              background: 'rgba(0, 8, 18, 0.9)',
-              border: '1px solid rgba(0, 212, 255, 0.5)',
-              borderRadius: 4,
-              padding: '3px 10px',
-              fontFamily: 'monospace',
-              fontSize: 11,
-              color: '#00d4ff',
-              letterSpacing: 1,
-              whiteSpace: 'nowrap',
-              backdropFilter: 'blur(6px)'
+              top: cityScreenPos.y - 32,
+              transform: 'translateX(-50%)'
             }}
           >
             {selectedCity.n}, {selectedCity.c}
@@ -176,50 +169,48 @@ export function PanelContainer() {
       <AnimatePresence>
         {panelsVisible && (
           <>
+            {/* 1. Solar & Daylight */}
             <motion.div
-              custom={0}
-              variants={panelVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              style={{
-                position: 'fixed',
-                left: 12,
-                top: 50,
-                zIndex: 100,
-                maxHeight: 'calc(100vh - 60px)',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                scrollbarWidth: 'none',
-              }}
+              custom={0} variants={panelVariants} initial="hidden" animate="visible" exit="exit"
+              className="panel-solar"
+              style={{ position: 'fixed', left: 20, top: 72, zIndex: 10 }}
             >
               <div ref={el => { panelRefs.current['solar'] = el }}><SolarPanel /></div>
-              <div style={{ height: 4 }} />
+            </motion.div>
+
+            {/* 2. Atmosphere */}
+            <motion.div
+              custom={1} variants={panelVariants} initial="hidden" animate="visible" exit="exit"
+              className="panel-atmosphere"
+              style={{ position: 'fixed', left: 20, bottom: 100, zIndex: 10 }}
+            >
               <div ref={el => { panelRefs.current['atmosphere'] = el }}><AtmospherePanel /></div>
             </motion.div>
 
-            {/* RIGHT column (scrollable) */}
+            {/* 3. Weather Data */}
             <motion.div
-              custom={1}
-              variants={panelVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              style={{
-                position: 'fixed',
-                right: 12,
-                top: 50,
-                zIndex: 100,
-                maxHeight: 'calc(100vh - 60px)',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                scrollbarWidth: 'none',
-              }}
+              custom={2} variants={panelVariants} initial="hidden" animate="visible" exit="exit"
+              className="panel-weather"
+              style={{ position: 'fixed', right: 20, top: 72, zIndex: 10 }}
             >
               <div ref={el => { panelRefs.current['weather'] = el }}><WeatherPanel /></div>
-              <div style={{ height: 4 }} />
+            </motion.div>
+
+            {/* 4. Air Quality */}
+            <motion.div
+              custom={3} variants={panelVariants} initial="hidden" animate="visible" exit="exit"
+              className="panel-air"
+              style={{ position: 'fixed', right: 20, bottom: 100, zIndex: 10 }}
+            >
               <div ref={el => { panelRefs.current['air'] = el }}><AirQualityPanel /></div>
-              <div style={{ height: 4 }} />
+            </motion.div>
+
+            {/* 5. 7-Day Forecast */}
+            <motion.div
+              custom={4} variants={panelVariants} initial="hidden" animate="visible" exit="exit"
+              className="panel-forecast"
+              style={{ position: 'fixed', left: '50%', x: '-50%', bottom: 20, zIndex: 10 }}
+            >
               <div ref={el => { panelRefs.current['forecast'] = el }}><ForecastPanel /></div>
             </motion.div>
           </>
