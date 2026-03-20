@@ -42,7 +42,7 @@ export class Globe {
 
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000)
-    this.camera.position.set(0, 0, 6)
+    this.camera.position.set(0, 0, 4.5)
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     this.renderer.setSize(width, height)
@@ -53,9 +53,9 @@ export class Globe {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     // @ts-ignore - Bypass OrbitControls access modifier restriction
     this.controls.target.set(0, -0.3, 0)
-    // Lock default zoom: allow small range around current distance (z=6)
-    this.controls.minDistance = 67.5
-    this.controls.maxDistance = 50.0
+    // Default zoom bounds allowing user freedom
+    this.controls.minDistance = 2.5
+    this.controls.maxDistance = 13.0
     this.controls.update()
     this.setupScene()
     this.setupEventListeners()
