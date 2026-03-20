@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+# 🌍 Sentinel Globe
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Sentinel Globe** is an interactive, visually-rich 3D web application that renders a realistic Earth globe to display real-time weather and forecast data for various cities worldwide. Built with modern web technologies, it features smooth animations, stunning 3D graphics, and an intuitive user interface.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Interactive 3D Globe**: Built with Three.js, offering interactive spinning, zooming, and panning.
+- **Real-time Weather Data**: Integrated UI panels to display current local weather conditions and extended forecasts.
+- **City Markers**: Interactive markers placed accurately on the globe based on real geographical coordinates.
+- **Smooth Animations**: Powered by Framer Motion for a seamless, floating, and premium user experience.
+- **Modern UI**: Styled with Tailwind CSS for a responsive, glassmorphism-inspired, and visually stunning interface.
+- **Global State Management**: Utilizes Zustand for lightweight, fast, and scalable state handling.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **3D Rendering**: [Three.js](https://threejs.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
 
-## Expanding the ESLint configuration
+## 🚀 Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Clone the repository and navigate to the project directory:
+
+```bash
+cd sentinel-globe
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install the dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### Running the App Locally
+
+To start the development server:
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173` (or the port specified by Vite).
+
+### Building for Production
+
+To create an optimized production build:
+
+```bash
+npm run build
+```
+
+You can preview the production build locally using:
+
+```bash
+npm run preview
+```
+
+## 📂 Architecture Overview
+
+The core architecture separates the 3D rendering context away from the standard React DOM overlay:
+
+- `src/globe/`: Contains the Three.js imperative code for the 3D canvas (`Globe.ts`, `CityMarkers.ts`).
+- `src/panels/`: Contains the React UI overlays that float above the globe (`WeatherPanel.tsx`, `ForecastPanel.tsx`).
+- `src/store/`: Contains Zustand store for managing cross-component communication.
+- `src/App.tsx`: The main root component that orchestrates the UI and the 3D scene instance.
+
+## 📜 Available Scripts
+
+- `npm run dev`: Starts the Vite development server with HMR.
+- `npm run build`: Compiles TypeScript and bundles the application for production.
+- `npm run preview`: Starts a local web server to serve the constructed production bundle.
+- `npm run lint`: Runs ESLint to find and fix problems in the codebase.
