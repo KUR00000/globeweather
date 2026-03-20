@@ -42,7 +42,6 @@ export class Globe {
 
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000)
-    this.camera.position.set(0, 0, 6)
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     this.renderer.setSize(width, height)
@@ -52,7 +51,14 @@ export class Globe {
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     // @ts-ignore - Bypass OrbitControls access modifier restriction
-    this.controls.target.set(0, 0, 0)
+    this.controls.target.set(0.0, -0.3, 0)
+
+    // EASY CONTROL FOR INITIAL LOAD GLOBE "WIDTH AND HEIGHT" (Size)
+    // Change 6.0 to whatever you want:
+    //   - Higher number (e.g. 7.0) = smaller globe (zoomed out)
+    //   - Lower number (e.g. 4.5)  = bigger globe (zoomed in)
+    this.camera.position.set(0, 0, 8.0)
+
     // Default zoom bounds allowing user freedom
     this.controls.minDistance = 2.5
     this.controls.maxDistance = 13.0
