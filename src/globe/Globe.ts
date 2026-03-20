@@ -53,6 +53,9 @@ export class Globe {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     // @ts-ignore - Bypass OrbitControls access modifier restriction
     this.controls.target.set(0, -0.3, 0)
+    // Lock default zoom: allow small range around current distance (z=6)
+    this.controls.minDistance = 67.5
+    this.controls.maxDistance = 50.0
     this.controls.update()
     this.setupScene()
     this.setupEventListeners()
@@ -82,8 +85,8 @@ export class Globe {
     // Load texture asynchronously and swap in when ready
     this.loadTexture('/textures/earth_day.jpg').then(texture => {
       if (texture && this.earthMesh) {
-        ;(this.earthMesh.material as THREE.MeshStandardMaterial).map = texture
-        ;(this.earthMesh.material as THREE.MeshStandardMaterial).needsUpdate = true
+        ; (this.earthMesh.material as THREE.MeshStandardMaterial).map = texture
+          ; (this.earthMesh.material as THREE.MeshStandardMaterial).needsUpdate = true
       }
     })
 
@@ -232,14 +235,14 @@ export class Globe {
   public removeSelectedCityIndicator(): void {
     if (this.selectedCityMarker) {
       this.scene.remove(this.selectedCityMarker)
-      ;(this.selectedCityMarker.material as THREE.Material).dispose()
+        ; (this.selectedCityMarker.material as THREE.Material).dispose()
       this.selectedCityMarker.geometry.dispose()
       this.selectedCityMarker = null
     }
 
     if (this.selectedCityRing) {
       this.scene.remove(this.selectedCityRing)
-      ;(this.selectedCityRing.material as THREE.Material).dispose()
+        ; (this.selectedCityRing.material as THREE.Material).dispose()
       this.selectedCityRing.geometry.dispose()
       this.selectedCityRing = null
     }
@@ -295,7 +298,7 @@ export class Globe {
       const scale = 1 + Math.sin(time) * 0.1
       this.selectedCityMarker.scale.set(scale, scale, scale)
       this.selectedCityRing.scale.set(scale, scale, scale)
-      ;(this.selectedCityRing.material as THREE.MeshBasicMaterial).opacity = 0.6 + Math.sin(time) * 0.3
+        ; (this.selectedCityRing.material as THREE.MeshBasicMaterial).opacity = 0.6 + Math.sin(time) * 0.3
     }
 
     // Update city screen position every frame
@@ -343,19 +346,19 @@ export class Globe {
     if (this.earthMesh) {
       this.scene.remove(this.earthMesh)
       this.earthMesh.geometry.dispose()
-      ;(this.earthMesh.material as THREE.Material).dispose()
+        ; (this.earthMesh.material as THREE.Material).dispose()
     }
 
     if (this.atmosphereMesh) {
       this.scene.remove(this.atmosphereMesh)
       this.atmosphereMesh.geometry.dispose()
-      ;(this.atmosphereMesh.material as THREE.Material).dispose()
+        ; (this.atmosphereMesh.material as THREE.Material).dispose()
     }
 
     if (this.starfield) {
       this.scene.remove(this.starfield)
       this.starfield.geometry.dispose()
-      ;(this.starfield.material as THREE.Material).dispose()
+        ; (this.starfield.material as THREE.Material).dispose()
     }
 
     this.renderer.dispose()

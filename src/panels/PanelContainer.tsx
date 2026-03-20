@@ -53,16 +53,21 @@ export function PanelContainer() {
 
       if (id === 'solar') { targetX = rect.right; targetY = rect.bottom; }
       else if (id === 'atmosphere') { targetX = rect.right; targetY = rect.top; }
-      else if (id === 'weather') { targetX = rect.left; targetY = rect.bottom; }
+      else if (id === 'weather') { targetX = rect.left; targetY = rect.top + rect.height / 2; }
       else if (id === 'air') { targetX = rect.left; targetY = rect.top; }
       else if (id === 'forecast') { targetX = rect.left + rect.width / 2; targetY = rect.top; }
 
-      const lineEl = lineRefs.current[id]
-      if (lineEl) {
-        lineEl.setAttribute('x1', cityPos.x.toString())
-        lineEl.setAttribute('y1', cityPos.y.toString())
-        lineEl.setAttribute('x2', targetX.toString())
-        lineEl.setAttribute('y2', targetY.toString())
+      // We use polylineRefs now instead of lineRefs
+      const polylineEl = (lineRefs as any).current[id]
+      if (polylineEl) {
+        if (id === 'weather') {
+          // L-shaped elbow for Weather
+          const midX = (cityPos.x + targetX) / 2
+          polylineEl.setAttribute('points', `${cityPos.x},${cityPos.y} ${midX},${targetY} ${targetX},${targetY}`)
+        } else {
+          // Straight line for others
+          polylineEl.setAttribute('points', `${cityPos.x},${cityPos.y} ${targetX},${targetY}`)
+        }
       }
 
       const circleEl = circleRefs.current[id]
@@ -93,11 +98,12 @@ export function PanelContainer() {
             <>
               {PANEL_IDS.map((id, i) => (
                 <g key={id}>
-                  <motion.line
+                  <motion.polyline
                     ref={(el) => { (lineRefs as any).current[id] = el }}
                     stroke="#00d4ff"
                     strokeWidth="1"
                     strokeDasharray="6 3"
+                    fill="none"
                     initial={{ pathLength: 0, opacity: 0 }}
                     animate={{
                       pathLength: 1,
