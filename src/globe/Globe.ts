@@ -26,6 +26,9 @@ export class Globe {
   private mouse = new THREE.Vector2()
   private hoveredCityId: number | null = null
 
+  private sunLight: THREE.DirectionalLight | null = null
+  private sunVisual: THREE.Mesh | null = null
+
   private width: number
   private height: number
   private config: GlobeConfig
@@ -50,8 +53,7 @@ export class Globe {
     container.appendChild(this.renderer.domElement)
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-    // @ts-ignore - Bypass OrbitControls access modifier restriction
-    this.controls.target.set(0.0, -0.3, 0)
+    this.controls.setTarget(new THREE.Vector3(0, 0, 0))
 
     // EASY CONTROL FOR INITIAL LOAD GLOBE "WIDTH AND HEIGHT" (Size)
     // Change 6.0 to whatever you want:
@@ -74,16 +76,47 @@ export class Globe {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
     this.scene.add(ambientLight)
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5)
-    sunLight.position.set(5, 3, 5)
-    this.scene.add(sunLight)
+    this.sunLight = new THREE.DirectionalLight(0xffffff, 3.5)
+    this.sunLight.position.set(5, 3, 5)
+    this.sunLight.castShadow = true
+    this.scene.add(this.sunLight)
+
+    // Visual Sun (Glowing sphere far away)
+    const sunGeometry = new THREE.SphereGeometry(1.5, 32, 32)
+    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
+    this.sunVisual = new THREE.Mesh(sunGeometry, sunMaterial)
+    this.scene.add(this.sunVisual)
+
+    // Sun Glow
+    const sunGlowGeometry = new THREE.SphereGeometry(2.5, 32, 32)
+    const sunGlowMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(0.8 - dot(vNormal, vec3(0, 0, 1.0)), 2.5);
+          gl_FragColor = vec4(1.0, 0.95, 0.8, 1.0) * intensity;
+        }
+      `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    })
+    const sunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial)
+    this.sunVisual.add(sunGlow)
 
     // Earth sphere — start with fallback material, upgrade when texture loads
     const earthGeometry = new THREE.SphereGeometry(2, 64, 64)
     const earthMaterial = new THREE.MeshStandardMaterial({
       color: 0x1a3a5a,
-      roughness: 0.8,
-      metalness: 0.1
+      roughness: 0.7,
+      metalness: 0.2
     })
     this.earthMesh = new THREE.Mesh(earthGeometry, earthMaterial)
     this.scene.add(this.earthMesh)
@@ -99,6 +132,9 @@ export class Globe {
     // Atmosphere
     const atmosphereGeometry = new THREE.SphereGeometry(2.06, 64, 64)
     const atmosphereMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        sunPosition: { value: new THREE.Vector3(5, 3, 5) }
+      },
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPosition;
@@ -109,11 +145,21 @@ export class Globe {
         }
       `,
       fragmentShader: `
+        uniform vec3 sunPosition;
         varying vec3 vNormal;
         varying vec3 vPosition;
         void main() {
-          float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
-          gl_FragColor = vec4(0.0, 0.8, 1.0, 1.0) * intensity;
+          vec3 viewDirection = normalize(vPosition);
+          vec3 sunDir = normalize(sunPosition);
+          
+          // Fresnel effect for glow
+          float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
+          
+          // Sunlight-based atmosphere coloring
+          float sunGlow = max(0.0, dot(vNormal, sunDir));
+          vec3 atmosphereColor = mix(vec3(0.0, 0.4, 0.8), vec3(0.3, 0.7, 1.0), sunGlow);
+          
+          gl_FragColor = vec4(atmosphereColor, 1.0) * (intensity + sunGlow * 0.2);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -141,6 +187,40 @@ export class Globe {
     const starMaterial = new THREE.PointsMaterial({ size: 0.3, color: 0xffffff, sizeAttenuation: true })
     this.starfield = new THREE.Points(starGeometry, starMaterial)
     this.scene.add(this.starfield)
+  }
+
+  public updateSunPosition(date: Date): void {
+    if (!this.sunLight || !this.sunVisual) return
+
+    const hours = date.getUTCHours()
+    const minutes = date.getUTCMinutes()
+    const timeAsDecimalHours = hours + minutes / 60
+
+    // Convert time to longitude where the sun is at its zenith
+    const solarLongitude = (12 - timeAsDecimalHours) * 15
+
+    // Latitude of the sun (seasonal variation)
+    const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24)
+    const solarLatitude = 23.45 * Math.sin((360 / 365) * (dayOfYear - 81) * (Math.PI / 180))
+
+    const sunPos = latLonToVec3(solarLatitude, solarLongitude, 20)
+    this.sunLight.position.copy(sunPos)
+    this.sunVisual.position.copy(sunPos)
+
+    if (this.atmosphereMesh) {
+      const material = this.atmosphereMesh.material as THREE.ShaderMaterial
+      if (material.uniforms && material.uniforms.sunPosition) {
+        material.uniforms.sunPosition.value.copy(sunPos)
+      }
+    }
+  }
+
+  public focusCity(city: City): void {
+    const position = latLonToVec3(city.la, city.lo, 5.0)
+    this.camera.position.copy(position)
+    this.controls.setTarget(new THREE.Vector3(0, 0, 0))
+    this.controls.update()
+    this.createSelectedCityIndicator(city)
   }
 
   private setupEventListeners(): void {
@@ -288,6 +368,7 @@ export class Globe {
 
   public render(): void {
     this.controls.update()
+    this.updateSunPosition(new Date())
 
     // Update starfield twinkling
     if (this.starfield) {
@@ -385,8 +466,8 @@ class OrbitControls {
   private _onWheel: (e: WheelEvent) => void
 
   minDistance = 3.5
-  maxDistance = 9
-  autoRotate = true
+  maxDistance = 13
+  autoRotate = false
   autoRotateSpeed = 0.3
   enableDamping = false
 
@@ -401,6 +482,11 @@ class OrbitControls {
     this._onWheel = this.onWheel.bind(this)
 
     this.setupEvents()
+  }
+
+  public setTarget(target: THREE.Vector3): void {
+    this.target.copy(target)
+    this.camera.lookAt(this.target)
   }
 
   private setupEvents(): void {

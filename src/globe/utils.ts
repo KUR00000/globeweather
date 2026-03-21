@@ -71,30 +71,30 @@ export function wmoCodeToDescription(code: number): {
   icon: string
 } {
   const codeMap: Record<number, { description: string; icon: string }> = {
-    0: { description: 'Clear sky', icon: '☀️' },
-    1: { description: 'Mainly clear', icon: '🌤️' },
-    2: { description: 'Partly cloudy', icon: '⛅' },
-    3: { description: 'Overcast', icon: '☁️' },
-    45: { description: 'Fog', icon: '🌫️' },
-    48: { description: 'Icing fog', icon: '🌫️' },
-    51: { description: 'Light drizzle', icon: '🌧️' },
-    53: { description: 'Drizzle', icon: '🌧️' },
-    55: { description: 'Heavy drizzle', icon: '🌧️' },
-    61: { description: 'Slight rain', icon: '🌧️' },
-    63: { description: 'Rain', icon: '🌧️' },
-    65: { description: 'Heavy rain', icon: '🌧️' },
-    71: { description: 'Slight snow', icon: '❄️' },
-    73: { description: 'Snow', icon: '❄️' },
-    75: { description: 'Heavy snow', icon: '❄️' },
-    80: { description: 'Rain showers', icon: '🌦️' },
-    81: { description: 'Showers', icon: '🌦️' },
-    82: { description: 'Heavy showers', icon: '🌦️' },
-    95: { description: 'Thunderstorm', icon: '⛈️' },
-    96: { description: 'Thunderstorm with hail', icon: '⛈️' },
-    99: { description: 'Heavy thunderstorm with hail', icon: '⛈️' }
+    0: { description: 'Clear sky', icon: 'Sun' },
+    1: { description: 'Mainly clear', icon: 'Sun' },
+    2: { description: 'Partly cloudy', icon: 'CloudSun' },
+    3: { description: 'Overcast', icon: 'Cloud' },
+    45: { description: 'Fog', icon: 'CloudFog' },
+    48: { description: 'Icing fog', icon: 'CloudFog' },
+    51: { description: 'Light drizzle', icon: 'CloudDrizzle' },
+    53: { description: 'Drizzle', icon: 'CloudDrizzle' },
+    55: { description: 'Heavy drizzle', icon: 'CloudDrizzle' },
+    61: { description: 'Slight rain', icon: 'CloudRain' },
+    63: { description: 'Rain', icon: 'CloudRain' },
+    65: { description: 'Heavy rain', icon: 'CloudRain' },
+    71: { description: 'Slight snow', icon: 'CloudSnow' },
+    73: { description: 'Snow', icon: 'CloudSnow' },
+    75: { description: 'Heavy snow', icon: 'CloudSnow' },
+    80: { description: 'Rain showers', icon: 'CloudRain' },
+    81: { description: 'Showers', icon: 'CloudRain' },
+    82: { description: 'Heavy showers', icon: 'CloudRain' },
+    95: { description: 'Thunderstorm', icon: 'CloudLightning' },
+    96: { description: 'Thunderstorm with hail', icon: 'CloudLightning' },
+    99: { description: 'Heavy thunderstorm with hail', icon: 'CloudLightning' }
   }
 
-  return codeMap[code] || { description: 'Unknown', icon: '❓' }
+  return codeMap[code] || { description: 'Unknown', icon: 'HelpCircle' }
 }
 
 /**

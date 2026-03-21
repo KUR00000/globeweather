@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Globe } from './Globe'
-import type { City } from '../data'
 import { loadCities } from '../data'
 import { useGlobeStore } from '../store/useGlobeStore'
-import {
-  fetchWeather,
-  fetchAir,
-  fetchAtmosphere,
-  fetchSolar,
-  fetchForecast
-} from '../data'
+import type { City } from '../data'
 
 interface GlobeCanvasProps {
   className?: string
@@ -30,31 +23,24 @@ export function GlobeCanvas({ className }: GlobeCanvasProps) {
   const [loadingText, setLoadingText] = useState('Initializing...')
   const [hoveredCity, setHoveredCity] = useState<HoveredCity | null>(null)
 
-  const handleCityClick = useCallback(async (city: City, screenPos: { x: number; y: number }) => {
-    useGlobeStore.getState().setLoading(true)
-    try {
-      const [weather, air, atmosphere, solar, forecast] = await Promise.all([
-        fetchWeather(city.la, city.lo),
-        fetchAir(city.la, city.lo),
-        fetchAtmosphere(city.la, city.lo),
-        fetchSolar(city.la, city.lo),
-        fetchForecast(city.la, city.lo)
-      ])
-
-      const store = useGlobeStore.getState()
-      store.setCity(city, screenPos)
-      store.setWeatherData(weather)
-      store.setAirData(air)
-      store.setAtmosphereData(atmosphere)
-      store.setSolarData(solar)
-      store.setForecastData(forecast)
-    } catch (error) {
-      console.error('Error fetching city data:', error)
-      useGlobeStore.getState().setError('Failed to load city data')
-    } finally {
-      useGlobeStore.getState().setLoading(false)
-    }
+  const handleCityClick = useCallback(async (city: City, screenPos?: { x: number; y: number }) => {
+    const store = useGlobeStore.getState()
+    await store.selectCity(city, screenPos, () => {
+      if (globeRef.current) {
+        globeRef.current.focusCity(city)
+      }
+    })
   }, [])
+
+  // Sync theme with body class
+  const theme = useGlobeStore(state => state.theme)
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-mode')
+    } else {
+      document.body.classList.remove('light-mode')
+    }
+  }, [theme])
 
   useEffect(() => {
     const container = containerRef.current
@@ -97,6 +83,7 @@ export function GlobeCanvas({ className }: GlobeCanvasProps) {
       .then(cities => {
         setLoadingText(`Rendering ${cities.length.toLocaleString()} cities...`)
         globe.loadCities(cities)
+        useGlobeStore.getState().setCities(cities)
         console.log(`[GlobeCanvas] ${cities.length} cities loaded and rendered`)
         setTimeout(() => setIsLoaded(true), 300)
       })
