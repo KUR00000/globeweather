@@ -8,7 +8,6 @@ export class CityMarkers {
   private dummyObject = new THREE.Object3D()
   private baseColor = new THREE.Color('#0099bb')
   private hoverColor = new THREE.Color('#00ffff')
-  private matrix = new THREE.Matrix4()
 
   constructor(cities: City[]) {
     this.cities = cities

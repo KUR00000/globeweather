@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useGlobeStore } from '../store/useGlobeStore'
+import { MousePointer2 } from 'lucide-react'
 
 export function HintText() {
   const [isVisible, setIsVisible] = useState(true)
@@ -21,13 +22,14 @@ export function HintText() {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 text-hud-cyan text-xs uppercase tracking-wider opacity-70"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 text-hud-cyan text-xs uppercase tracking-widest opacity-70"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 0.7, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          CLICK ANY CITY TO INSPECT
+          <MousePointer2 size={12} strokeWidth={2.5} />
+          <span>CLICK ANY CITY TO INSPECT</span>
         </motion.div>
       )}
     </AnimatePresence>

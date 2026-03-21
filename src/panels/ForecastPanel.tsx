@@ -1,5 +1,7 @@
 import { useGlobeStore } from '../store/useGlobeStore'
 import { wmoCodeToDescription, getDayName } from '../globe/utils'
+import { Calendar, Droplets } from 'lucide-react'
+import { DynamicIcon } from '../hud/DynamicIcon'
 
 export function ForecastPanel() {
   const forecastData = useGlobeStore(state => state.forecastData)
@@ -15,21 +17,21 @@ export function ForecastPanel() {
   }
 
   return (
-    <div className="panel-hud visible" style={{ width: 'auto', minWidth: 600, maxWidth: '90vw' }}>
-      <div className="panel-header" style={{ justifyContent: 'center' }}>
-        📅 7-DAY FORECAST
+    <div className="panel-hud visible min-w-[600px] max-w-[90vw] w-auto">
+      <div className="panel-header flex justify-center items-center">
+        <Calendar size={14} className="mr-2" /> 7-DAY FORECAST
       </div>
-      <div className="panel-content" style={{ padding: '16px 20px' }}>
+      <div className="panel-content px-5 py-4">
         {loading && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 12 }}>
+          <div className="grid grid-cols-7 gap-3">
             {[0, 1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="loading-shimmer" style={{ height: 80, borderRadius: 12 }} />
+              <div key={i} className="loading-shimmer h-20 rounded-xl" />
             ))}
           </div>
         )}
 
         {!loading && daily && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 12 }}>
+          <div className="grid grid-cols-7 gap-3">
             {daily.time.map((date, index) => {
               const weather = wmoCodeToDescription(daily.weathercode[index])
               const minTemp = daily.temperature_2m_min[index]
@@ -39,82 +41,48 @@ export function ForecastPanel() {
               return (
                 <div
                   key={date}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    background: 'rgba(0, 0, 0, 0.4)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    borderRadius: 16,
-                    padding: '12px 16px',
-                    transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    cursor: 'default'
-                  }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(0, 229, 255, 0.08)';
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0, 229, 255, 0.3)';
-                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(0, 0, 0, 0.4)';
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                  }}
+                  className="flex flex-col items-center bg-black/40 border border-white/5 rounded-2xl p-3 transition-all duration-300 hover:bg-hud-cyan/10 hover:border-hud-cyan/30 hover:-translate-y-1 relative overflow-hidden cursor-default group"
                 >
                   {/* Rain Probability Background Height */}
                   {rainProb > 0 && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${rainProb}%`,
-                      background: 'linear-gradient(0deg, rgba(0, 229, 255, 0.15) 0%, transparent 100%)',
-                      zIndex: 0,
-                      pointerEvents: 'none'
-                    }} />
+                    <div
+                      className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-hud-cyan/15 to-transparent z-0 pointer-events-none transition-all duration-500"
+                      style={{ height: `${rainProb}%` }}
+                    />
                   )}
 
-                  <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                  <div className="z-10 flex flex-col items-center w-full">
                     {/* Day name */}
-                    <div style={{ 
-                      fontFamily: 'Space Mono', 
-                      fontSize: 10, 
-                      fontWeight: 700, 
-                      color: index === 0 ? '#00e5ff' : '#6c8a9c', 
-                      letterSpacing: 2,
-                      marginBottom: 8
-                    }}>
+                    <div
+                      className="label text-[9px] font-bold tracking-widest mb-2"
+                      style={{ color: index === 0 ? '#00e5ff' : '#6c8a9c' }}
+                    >
                       {formatDay(date, index)}
                     </div>
 
                     {/* Weather icon */}
-                    <div style={{ fontSize: 28, marginBottom: 8, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }}>
-                      {weather?.icon}
+                    <div className="text-hud-cyan mb-2 drop-shadow-lg group-hover:scale-110 transition-transform">
+                      {weather?.icon && (
+                        <DynamicIcon name={weather.icon} size={24} strokeWidth={1.5} />
+                      )}
                     </div>
 
                     {/* Temperatures */}
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
-                      <span style={{ fontFamily: 'Outfit', fontSize: 20, fontWeight: 700, color: '#ffffff' }}>
+                    <div className="flex items-baseline gap-1.5 mb-2">
+                      <span className="text-lg font-bold text-white">
                         {Math.round(maxTemp)}°
                       </span>
-                      <span style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: '#6c8a9c' }}>
+                      <span className="text-xs font-medium text-[#6c8a9c]">
                         {Math.round(minTemp)}°
                       </span>
                     </div>
 
                     {/* Rain probability text */}
-                    <div style={{ 
-                      fontFamily: 'Space Mono', 
-                      fontSize: 10, 
-                      color: rainProb > 20 ? '#00e5ff' : '#4a6b7c',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}>
-                      <span style={{ fontSize: 10 }}>💧</span>
+                    <div
+                      className="flex items-center gap-1 label text-[9px]"
+                      style={{ color: rainProb > 20 ? '#00e5ff' : '#4a6b7c' }}
+                    >
+                      <Droplets size={8} />
                       {rainProb}%
                     </div>
                   </div>

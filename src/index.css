@@ -181,6 +181,137 @@ body {
 }
 
 /* ───────────────────────────────────────────────────────── 
+   LIGHT MODE OVERRIDES (High Contrast)
+   ───────────────────────────────────────────────────────── */
+
+body.light-mode {
+  /* Maintain dark/deep background for globe contrast, but lighten slightly */
+  background: radial-gradient(circle at center, #0a1128 0%, #000000 100%);
+  color: #e2f1f5;
+}
+
+body.light-mode .hud-scanlines {
+  opacity: 0.1;
+}
+
+body.light-mode .panel-hud {
+  background: rgba(248, 250, 252, 0.85); /* Slate 50 with high opacity */
+  backdrop-filter: blur(32px) saturate(160%);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 0 1px rgba(0, 160, 255, 0.4);
+  border: none;
+}
+
+body.light-mode .panel-header {
+  background: linear-gradient(90deg, rgba(0, 100, 255, 0.15) 0%, rgba(0, 100, 255, 0) 100%);
+  color: #0c4a6e; /* Deep sky blue */
+  border-bottom: 1px solid rgba(0, 100, 255, 0.1);
+  font-weight: 800;
+}
+
+body.light-mode .label {
+  color: #475569; /* Slate 600 - very readable on light bg */
+  font-weight: 600;
+}
+
+body.light-mode .value {
+  color: #0f172a; /* Slate 900 - nearly black */
+  font-weight: 700;
+}
+
+body.light-mode .hero-value {
+  color: #020617; /* Slate 950 */
+  font-weight: 900;
+}
+
+body.light-mode .city-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0369a1;
+  border: 2px solid #00e5ff;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  font-weight: 700;
+}
+
+body.light-mode .section-divider {
+  background: linear-gradient(90deg, rgba(0, 140, 255, 0.3) 0%, rgba(0, 140, 255, 0) 100%);
+}
+
+body.light-mode .top-bar-hud {
+  background: rgba(248, 250, 252, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 140, 255, 0.2) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+}
+
+body.light-mode .top-bar-hud .text-hud-cyan {
+  color: #0369a1;
+  font-weight: 800;
+}
+
+body.light-mode .text-hud-cyan {
+  color: #0369a1;
+}
+
+body.light-mode .SearchBar input {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  border-color: rgba(0, 160, 255, 0.3);
+  font-weight: 600;
+}
+
+body.light-mode .SearchBar input::placeholder {
+  color: #64748b;
+}
+
+body.light-mode .SearchBar svg {
+  color: #0369a1;
+}
+
+body.light-mode .svg-connector polyline {
+  stroke: #0088cc !important;
+  stroke-width: 1.5 !important;
+}
+
+body.light-mode .svg-connector circle {
+  fill: #0088cc !important;
+}
+
+/* ───────────────────────────────────────────────────────── 
+   FORECAST PANEL DARK MODE EXCEPTION
+   ───────────────────────────────────────────────────────── */
+body.light-mode .panel-forecast .panel-hud {
+  background: rgba(4, 6, 18, 0.85) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(0, 229, 255, 0.18) !important;
+}
+
+body.light-mode .panel-forecast .panel-header {
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.12) 0%, rgba(0, 229, 255, 0) 100%) !important;
+  color: #00e5ff !important;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.1) !important;
+}
+
+body.light-mode .panel-forecast .label {
+  color: #6c8a9c !important;
+}
+
+body.light-mode .panel-forecast .value {
+  color: #f0f8ff !important;
+}
+
+body.light-mode .panel-forecast .text-white {
+  color: #ffffff !important;
+}
+
+body.light-mode .panel-forecast .bg-black\/40 {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ───────────────────────────────────────────────────────── 
    EXACT RESPONSIVE PANEL SIZING & LOGIC
    ───────────────────────────────────────────────────────── */
 .panel-solar { width: 260px; height: 220px; }
